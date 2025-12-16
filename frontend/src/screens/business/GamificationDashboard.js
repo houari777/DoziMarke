@@ -7,16 +7,78 @@ import {
   ScrollView,
   TouchableOpacity,
   Animated,
-  Dimensions,
   Share,
 } from 'react-native';
-import { Card, Title, ProgressBar } from 'react-native-paper';
+import { Card, ProgressBar, Text as PaperText } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as Animatable from 'react-native-animatable';
 import LevelBadge from '../../components/business/LevelBadge';
 import AchievementCard from '../../components/business/AchievementCard';
 import ChallengeCard from '../../components/business/ChallengeCard';
 import GamificationSystem from '../../utils/gamification';
+
+const XPProgress = ({ xp, levelInfo }) => (
+  <View style={styles.xpProgressContainer}>
+    <View style={styles.xpHeader}>
+      <Text style={styles.xpLabel}>نقاط الخبرة (XP)</Text>
+      <Text style={styles.xpValue}>{xp.toLocaleString()}</Text>
+    </View>
+
+    <View style={styles.progressContainer}>
+      <View style={styles.progressBackground}>
+        <View
+          style={[
+            styles.progressFill,
+            { width: `${levelInfo.progress}%` }
+          ]}
+        />
+      </View>
+
+      <View style={styles.levelMarkers}>
+        <Text style={styles.currentLevel}>المستوى {levelInfo.level}</Text>
+        <Text style={styles.nextLevel}>المستوى {levelInfo.nextLevel}</Text>
+      </View>
+
+      <Text style={styles.xpRemaining}>
+        {levelInfo.xpToNextLevel.toLocaleString()} XP متبقية للمستوى التالي
+      </Text>
+    </View>
+  </View>
+);
+
+const CurrencyDisplay = ({ coins, gems, streak }) => (
+  <View style={styles.currencyContainer}>
+    <View style={styles.currencyItem}>
+      <View style={[styles.currencyIcon, styles.coinsIcon]}>
+        <Text style={styles.currencySymbol}>🪙</Text>
+      </View>
+      <View>
+        <Text style={styles.currencyAmount}>{coins}</Text>
+        <Text style={styles.currencyLabel}>دوزي كوينز</Text>
+      </View>
+    </View>
+
+    <View style={styles.currencyItem}>
+      <View style={[styles.currencyIcon, styles.gemsIcon]}>
+        <Text style={styles.currencySymbol}>💎</Text>
+      </View>
+      <View>
+        <Text style={styles.currencyAmount}>{gems}</Text>
+        <Text style={styles.currencyLabel}>أحجار نادرة</Text>
+      </View>
+    </View>
+
+    <View style={styles.currencyItem}>
+      <View style={[styles.currencyIcon, styles.streakIcon]}>
+        <Icon name="local-fire-department" size={20} color="#FFF" />
+      </View>
+      <View>
+        <Text style={styles.currencyAmount}>{streak}</Text>
+        <Text style={styles.currencyLabel}>يوم متتالي</Text>
+      </View>
+    </View>
+  </View>
+);
 
 const GamificationDashboard = () => {
   const [userData, setUserData] = useState({
@@ -62,12 +124,7 @@ const GamificationDashboard = () => {
         useNativeDriver: true,
       })
     ).start();
-  }, []);
-
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  }, [spinValue]);
 
   const levelInfo = GamificationSystem.helpers.calculateLevel(userData.xp);
   const nextLevelRewards = GamificationSystem.helpers.getLevelRewards(levelInfo.nextLevel);
@@ -96,69 +153,6 @@ const GamificationDashboard = () => {
     }));
   };
 
-  const XPProgress = () => (
-    <View style={styles.xpProgressContainer}>
-      <View style={styles.xpHeader}>
-        <Text style={styles.xpLabel}>نقاط الخبرة (XP)</Text>
-        <Text style={styles.xpValue}>{userData.xp.toLocaleString()}</Text>
-      </View>
-
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBackground}>
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${levelInfo.progress}%` }
-            ]}
-          />
-        </View>
-
-        <View style={styles.levelMarkers}>
-          <Text style={styles.currentLevel}>المستوى {levelInfo.level}</Text>
-          <Text style={styles.nextLevel}>المستوى {levelInfo.nextLevel}</Text>
-        </View>
-
-        <Text style={styles.xpRemaining}>
-          {levelInfo.xpToNextLevel.toLocaleString()} XP متبقية للمستوى التالي
-        </Text>
-      </View>
-    </View>
-  );
-
-  const CurrencyDisplay = () => (
-    <View style={styles.currencyContainer}>
-      <View style={styles.currencyItem}>
-        <View style={[styles.currencyIcon, { backgroundColor: '#FFD700' }]}>
-          <Text style={styles.currencySymbol}>🪙</Text>
-        </View>
-        <View>
-          <Text style={styles.currencyAmount}>{userData.coins}</Text>
-          <Text style={styles.currencyLabel}>دوزي كوينز</Text>
-        </View>
-      </View>
-
-      <View style={styles.currencyItem}>
-        <View style={[styles.currencyIcon, { backgroundColor: '#9C27B0' }]}>
-          <Text style={styles.currencySymbol}>💎</Text>
-        </View>
-        <View>
-          <Text style={styles.currencyAmount}>{userData.gems}</Text>
-          <Text style={styles.currencyLabel}>أحجار نادرة</Text>
-        </View>
-      </View>
-
-      <View style={styles.currencyItem}>
-        <View style={[styles.currencyIcon, { backgroundColor: '#4CAF50' }]}>
-          <Icon name="local-fire-department" size={20} color="#FFF" />
-        </View>
-        <View>
-          <Text style={styles.currencyAmount}>{userData.streak}</Text>
-          <Text style={styles.currencyLabel}>يوم متتالي</Text>
-        </View>
-      </View>
-    </View>
-  );
-
   return (
     <ScrollView style={styles.container}>
       {/* بطاقة المستوى */}
@@ -171,7 +165,7 @@ const GamificationDashboard = () => {
           <LevelBadge level={levelInfo.level} size={80} />
 
           <View style={styles.levelInfo}>
-            <Text style={styles.levelName}>{levelInfo.name}</Text>
+            <PaperText style={styles.levelName}>{levelInfo.name}</PaperText>
             <Text style={styles.levelDescription}>
               أنت في أعلى {Math.round((userData.xp / 200000) * 100)}% من التجار
             </Text>
@@ -195,8 +189,8 @@ const GamificationDashboard = () => {
           </View>
         </View>
 
-        <XPProgress />
-        <CurrencyDisplay />
+        <XPProgress xp={userData.xp} levelInfo={levelInfo} />
+        <CurrencyDisplay coins={userData.coins} gems={userData.gems} streak={userData.streak} />
       </Animatable.View>
 
       {/* مكافآت المستوى التالي */}
@@ -310,7 +304,7 @@ const GamificationDashboard = () => {
         <Animatable.View animation="fadeIn" duration={500}>
           <Card style={styles.activityCard}>
             <Card.Content>
-              <Title style={styles.activityTitle}>النشاط الأخير</Title>
+              <PaperText style={styles.activityTitle}>النشاط الأخير</PaperText>
 
               {userData.recentActivity.map((activity, index) => (
                 <View key={index} style={styles.activityItem}>
@@ -353,325 +347,334 @@ const GamificationDashboard = () => {
 
           <View style={styles.tipItem}>
             <Icon name="star" size={20} color="#FFC107" />
-            <Text style={styles.tipText">احصل على تقييمات 5 نجوم (+20 XP لكل تقييم)</Text>
-              </View>
+            <Text style={styles.tipText}>احصل على تقييمات 5 نجوم (+20 XP لكل تقييم)</Text>
+          </View>
 
-              <View style={styles.tipItem}>
-              <Icon name="reply" size={20} color="#2196F3" />
-              <Text style={styles.tipText">رد على الاستفسارات خلال 5 دقائق (+5 XP)</Text>
-                </View>
+          <View style={styles.tipItem}>
+            <Icon name="reply" size={20} color="#2196F3" />
+            <Text style={styles.tipText}>رد على الاستفسارات خلال 5 دقائق (+5 XP)</Text>
+          </View>
 
-                <View style={styles.tipItem}>
-                <Icon name="update" size={20} color="#FF9800" />
-                <Text style={styles.tipText">سجل دخولك يومياً (+5 XP لكل يوم متتالي)</Text>
-                  </View>
-                  </View>
-                  </Animatable.View>
+          <View style={styles.tipItem}>
+            <Icon name="update" size={20} color="#FF9800" />
+            <Text style={styles.tipText}>سجل دخولك يومياً (+5 XP لكل يوم متتالي)</Text>
+          </View>
+        </View>
+      </Animatable.View>
 
-                {/* زر المشاركة */}
-                  <TouchableOpacity
-                  style={styles.shareButton}
-                      onPress={() => shareAchievement({ name: 'تقدمي في النظام التلعبيبي' })}
-                >
-                  <Icon name="share" size={24} color="#FFF" />
-                  <Text style={styles.shareButtonText}>شارك تقدمك مع الأصدقاء</Text>
-                </TouchableOpacity>
+      {/* زر المشاركة */}
+      <TouchableOpacity
+        style={styles.shareButton}
+        onPress={() => shareAchievement({ name: 'تقدمي في النظام التلعبيبي' })}
+      >
+        <Icon name="share" size={24} color="#FFF" />
+        <Text style={styles.shareButtonText}>شارك تقدمك مع الأصدقاء</Text>
+      </TouchableOpacity>
     </ScrollView>
-);
+  );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-      backgroundColor: '#F5F5F5',
+    backgroundColor: '#F5F5F5',
   },
   levelCard: {
     backgroundColor: '#FFFFFF',
-      margin: 15,
-      padding: 20,
-      borderRadius: 20,
-      elevation: 4,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
+    margin: 15,
+    padding: 20,
+    borderRadius: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-      shadowRadius: 12,
+    shadowRadius: 12,
   },
   levelHeader: {
     flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 20,
+    alignItems: 'center',
+    marginBottom: 20,
   },
   levelInfo: {
     flex: 1,
-      marginLeft: 20,
+    marginLeft: 20,
   },
   levelName: {
     fontSize: 24,
-      fontWeight: 'bold',
-      color: '#333',
+    fontWeight: 'bold',
+    color: '#333',
   },
   levelDescription: {
     fontSize: 14,
-      color: '#666',
-      marginTop: 5,
+    color: '#666',
+    marginTop: 5,
   },
   statsRow: {
     flexDirection: 'row',
-      marginTop: 15,
+    marginTop: 15,
   },
   stat: {
     flex: 1,
-      alignItems: 'center',
+    alignItems: 'center',
   },
   statValue: {
     fontSize: 20,
-      fontWeight: 'bold',
-      color: '#2196F3',
+    fontWeight: 'bold',
+    color: '#2196F3',
   },
   statLabel: {
     fontSize: 12,
-      color: '#666',
-      marginTop: 2,
+    color: '#666',
+    marginTop: 2,
   },
   xpProgressContainer: {
     marginVertical: 20,
   },
   xpHeader: {
     flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 10,
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
   xpLabel: {
     fontSize: 16,
-      color: '#333',
-      fontWeight: '600',
+    color: '#333',
+    fontWeight: '600',
   },
   xpValue: {
     fontSize: 18,
-      fontWeight: 'bold',
-      color: '#2196F3',
+    fontWeight: 'bold',
+    color: '#2196F3',
   },
   progressContainer: {
     position: 'relative',
   },
   progressBackground: {
     height: 12,
-      backgroundColor: '#E0E0E0',
-      borderRadius: 6,
-      overflow: 'hidden',
+    backgroundColor: '#E0E0E0',
+    borderRadius: 6,
+    overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-      backgroundColor: '#4CAF50',
-      borderRadius: 6,
+    backgroundColor: '#4CAF50',
+    borderRadius: 6,
   },
   levelMarkers: {
     flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 5,
+    justifyContent: 'space-between',
+    marginTop: 5,
   },
   currentLevel: {
     fontSize: 12,
-      color: '#666',
+    color: '#666',
   },
   nextLevel: {
     fontSize: 12,
-      color: '#666',
+    color: '#666',
   },
   xpRemaining: {
     textAlign: 'center',
-      marginTop: 10,
-      fontSize: 14,
-      color: '#FF9800',
-      fontWeight: '500',
+    marginTop: 10,
+    fontSize: 14,
+    color: '#FF9800',
+    fontWeight: '500',
   },
   currencyContainer: {
     flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginTop: 20,
-      paddingTop: 20,
-      borderTopWidth: 1,
-      borderTopColor: '#F0F0F0',
+    justifyContent: 'space-around',
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
   },
   currencyItem: {
     alignItems: 'center',
   },
   currencyIcon: {
     width: 50,
-      height: 50,
-      borderRadius: 25,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 5,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  coinsIcon: {
+    backgroundColor: '#FFD700',
+  },
+  gemsIcon: {
+    backgroundColor: '#9C27B0',
+  },
+  streakIcon: {
+    backgroundColor: '#4CAF50',
   },
   currencySymbol: {
     fontSize: 24,
   },
   currencyAmount: {
     fontSize: 18,
-      fontWeight: 'bold',
-      color: '#333',
+    fontWeight: 'bold',
+    color: '#333',
   },
   currencyLabel: {
     fontSize: 12,
-      color: '#666',
+    color: '#666',
   },
   nextLevelCard: {
     backgroundColor: '#FFF8E1',
-      marginHorizontal: 15,
-      marginBottom: 15,
-      padding: 20,
-      borderRadius: 15,
-      borderWidth: 1,
-      borderColor: '#FFECB3',
+    marginHorizontal: 15,
+    marginBottom: 15,
+    padding: 20,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#FFECB3',
   },
   rewardsHeader: {
     flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 15,
+    alignItems: 'center',
+    marginBottom: 15,
   },
   rewardsTitle: {
     fontSize: 18,
-      fontWeight: 'bold',
-      color: '#FF9800',
-      marginLeft: 10,
+    fontWeight: 'bold',
+    color: '#FF9800',
+    marginLeft: 10,
   },
   rewardsList: {
     marginLeft: 10,
   },
   rewardItem: {
     flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 8,
+    alignItems: 'center',
+    marginBottom: 8,
   },
   rewardText: {
     fontSize: 14,
-      color: '#333',
-      marginLeft: 10,
+    color: '#333',
+    marginLeft: 10,
   },
   progressHint: {
     flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 15,
-      padding: 10,
-      backgroundColor: '#FFF3CD',
-      borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 15,
+    padding: 10,
+    backgroundColor: '#FFF3CD',
+    borderRadius: 8,
   },
   hintText: {
     fontSize: 12,
-      color: '#856404',
-      marginLeft: 10,
-      flex: 1,
+    color: '#856404',
+    marginLeft: 10,
+    flex: 1,
   },
   tabContainer: {
     flexDirection: 'row',
-      marginHorizontal: 15,
-      marginBottom: 20,
-      backgroundColor: '#FFF',
-      borderRadius: 12,
-      padding: 5,
-      elevation: 2,
+    marginHorizontal: 15,
+    marginBottom: 20,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 5,
+    elevation: 2,
   },
   tabButton: {
     flex: 1,
-      paddingVertical: 12,
-      alignItems: 'center',
-      borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 8,
   },
   activeTab: {
     backgroundColor: '#2196F3',
   },
   tabText: {
     fontSize: 12,
-      color: '#666',
-      fontWeight: '500',
+    color: '#666',
+    fontWeight: '500',
   },
   activeTabText: {
     color: '#FFF',
   },
   achievementsGrid: {
     flexDirection: 'row',
-      flexWrap: 'wrap',
-      paddingHorizontal: 10,
-      justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    paddingHorizontal: 10,
+    justifyContent: 'space-between',
   },
   seeAllButton: {
     flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      margin: 20,
-      padding: 15,
-      backgroundColor: '#FFF',
-      borderRadius: 12,
-      elevation: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 20,
+    padding: 15,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    elevation: 2,
   },
   seeAllText: {
     fontSize: 16,
-      color: '#2196F3',
-      fontWeight: '600',
-      marginRight: 10,
+    color: '#2196F3',
+    fontWeight: '600',
+    marginRight: 10,
   },
   challengesList: {
     paddingHorizontal: 15,
   },
   badgesContainer: {
     flexDirection: 'row',
-      flexWrap: 'wrap',
-      paddingHorizontal: 10,
-      justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    paddingHorizontal: 10,
+    justifyContent: 'space-between',
   },
   badgeCard: {
     width: '48%',
-      backgroundColor: '#FFF',
-      borderRadius: 12,
-      padding: 15,
-      marginBottom: 15,
-      alignItems: 'center',
-      elevation: 2,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 15,
+    alignItems: 'center',
+    elevation: 2,
   },
   badgeIconContainer: {
     width: 60,
-      height: 60,
-      borderRadius: 30,
-      backgroundColor: '#F5F5F5',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 10,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   badgeIcon: {
     fontSize: 30,
   },
   badgeName: {
     fontSize: 14,
-      fontWeight: '600',
-      color: '#333',
-      marginBottom: 10,
-      textAlign: 'center',
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 10,
+    textAlign: 'center',
   },
   badgeProgress: {
     width: '100%',
-      height: 6,
-      marginBottom: 5,
+    height: 6,
+    marginBottom: 5,
   },
   progressText: {
     fontSize: 12,
-      color: '#666',
+    color: '#666',
   },
   activityCard: {
     marginHorizontal: 15,
-      marginBottom: 15,
+    marginBottom: 15,
   },
   activityTitle: {
     fontSize: 18,
-      fontWeight: 'bold',
-      marginBottom: 15,
+    fontWeight: 'bold',
+    marginBottom: 15,
   },
   activityItem: {
     flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: '#F0F0F0',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
   activityIcon: {
     marginRight: 15,
@@ -681,73 +684,73 @@ const styles = StyleSheet.create({
   },
   activityAction: {
     fontSize: 14,
-      color: '#333',
-      fontWeight: '500',
+    color: '#333',
+    fontWeight: '500',
   },
   activityTime: {
     fontSize: 12,
-      color: '#666',
-      marginTop: 2,
+    color: '#666',
+    marginTop: 2,
   },
   xpBadge: {
     backgroundColor: '#E8F5E8',
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
   },
   xpBadgeText: {
     color: '#4CAF50',
-      fontSize: 12,
-      fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   tipsCard: {
     backgroundColor: '#F3E5F5',
-      margin: 15,
-      padding: 20,
-      borderRadius: 15,
-      borderWidth: 1,
-      borderColor: '#E1BEE7',
+    margin: 15,
+    padding: 20,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E1BEE7',
   },
   tipsHeader: {
     flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 15,
+    alignItems: 'center',
+    marginBottom: 15,
   },
   tipsTitle: {
     fontSize: 18,
-      fontWeight: 'bold',
-      color: '#9C27B0',
-      marginLeft: 10,
+    fontWeight: 'bold',
+    color: '#9C27B0',
+    marginLeft: 10,
   },
   tipsList: {
     marginLeft: 10,
   },
   tipItem: {
     flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: 12,
   },
   tipText: {
     fontSize: 14,
-      color: '#333',
-      marginLeft: 15,
-      flex: 1,
+    color: '#333',
+    marginLeft: 15,
+    flex: 1,
   },
   shareButton: {
     flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#2196F3',
-      margin: 15,
-      padding: 18,
-      borderRadius: 12,
-      elevation: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2196F3',
+    margin: 15,
+    padding: 18,
+    borderRadius: 12,
+    elevation: 3,
   },
   shareButtonText: {
     color: '#FFF',
-      fontSize: 16,
-      fontWeight: 'bold',
-      marginLeft: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 10,
   },
 });
 

@@ -3,7 +3,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Provider as PaperProvider } from 'react-native-paper';
-import { ThemeProvider } from './src/styles/ThemeContext';
+import { ThemeProvider } from './src/contexts/ThemeContext'; // Corrected path
 
 // الشاشات
 import BusinessDashboard from './src/screens/business/BusinessDashboard';

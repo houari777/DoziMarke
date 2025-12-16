@@ -5,10 +5,10 @@ import GamificationSystem from '../../utils/gamification';
 
 const LevelBadge = ({ level, size = 60 }) => {
   const levelData = GamificationSystem.helpers.calculateLevel(
-    GamificationSystem.levels.vendor[level]?.xpRequired || 0,
+    GamificationSystem.levels.vendor[level]?.xpRequired || 0
   );
 
-  const getLevelColor = level => {
+  const getLevelColor = (level) => {
     if (level < 5) return '#4CAF50';
     if (level < 10) return '#2196F3';
     if (level < 20) return '#FF9800';
@@ -16,17 +16,17 @@ const LevelBadge = ({ level, size = 60 }) => {
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          width: size,
-          height: size,
-          backgroundColor: getLevelColor(level),
-        },
-      ]}
-    >
-      <Text style={[styles.levelText, { fontSize: size * 0.3 }]}>{level}</Text>
+    <View style={[
+      styles.container,
+      {
+        width: size,
+        height: size,
+        backgroundColor: getLevelColor(level),
+      }
+    ]}>
+      <Text style={[styles.levelText, { fontSize: size * 0.3 }]}>
+        {level}
+      </Text>
       <Text style={styles.levelLabel}>المستوى</Text>
     </View>
   );

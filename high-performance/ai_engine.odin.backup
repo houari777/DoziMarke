@@ -116,13 +116,6 @@ user_cache: map[string]UserGamificationState
 leaderboard_cache: [dynamic]LeaderboardEntry
 
 // =======================
-// Helper Functions
-// =======================
-get_user_name :: proc(user_id: string) -> string { 
-    return fmt.tprint("User ", user_id)
-}
-
-// =======================
 // Gamification Functions
 // =======================
 calculate_xp_for_action :: proc(action: string, data: DataMap, state: UserGamificationState) -> int {
@@ -148,6 +141,11 @@ calculate_xp_for_action :: proc(action: string, data: DataMap, state: UserGamifi
     return int(f64(xp) * multiplier)
 }
 
+// calculate_level function is defined only once
+
+get_user_name :: proc(user_id: string) -> string { 
+    return "تاجر" 
+}
 grant_level_rewards :: proc(state: ^UserGamificationState, level: int) {
     if level == 5 {
         state.coins += 500
@@ -160,6 +158,78 @@ grant_level_rewards :: proc(state: ^UserGamificationState, level: int) {
     } else if level == 50 {
         state.gems += 100
     }
+}
+
+save_to_database :: proc(state: UserGamificationState) { 
+    fmt.println("💾 Saving state:", state.user_id, "XP:", state.xp) 
+}
+
+send_realtime_update :: proc(user_id: string, message: string) { 
+    fmt.println("🔔 Update for user", user_id, ":", message) 
+}
+
+update_leaderboard :: proc(state: ^UserGamificationState) {
+    found := false
+    for &entry, i in leaderboard_cache {
+        if entry.user_id == state.user_id {
+            old_rank := entry.rank
+            entry.xp = state.xp
+            entry.level = state.level
+            entry.sales = state.statistics.total_sales
+            entry.revenue = state.statistics.total_revenue
+            
+            // Re-sort the leaderboard
+            sort_leaderboard()
+            
+            // Update the change in rank
+            entry.change = old_rank - find_rank(state.user_id)
+            found = true
+            break
+        }
+    }
+    
+    if !found {
+        // Add new entry to leaderboard
+        new_entry := LeaderboardEntry{
+            user_id = state.user_id,
+            name = fmt.tprint("User ", state.user_id),
+            xp = state.xp,
+            level = state.level,
+            sales = state.statistics.total_sales,
+            revenue = state.statistics.total_revenue,
+            rank = 0,
+            change = 0,
+        }
+        append(&leaderboard_cache, new_entry)
+        sort_leaderboard()
+    }
+}
+
+sort_leaderboard :: proc() {
+    n := len(leaderboard_cache)
+    
+    // Simple bubble sort for demonstration
+    for i in 0..<n-1 {
+        for j in 0..<n-i-1 {
+            if leaderboard_cache[j].xp < leaderboard_cache[j+1].xp {
+                leaderboard_cache[j], leaderboard_cache[j+1] = leaderboard_cache[j+1], leaderboard_cache[j]
+            }
+        }
+    }
+    
+    // Update ranks
+    for &entry, i in leaderboard_cache {
+        entry.rank = i + 1
+    }
+}
+
+find_rank :: proc(user_id: string) -> int {
+    for entry, i in leaderboard_cache {
+        if entry.user_id == user_id {
+            return i + 1
+        }
+    }
+    return 0
 }
 
 calculate_level :: proc(xp: int) -> int {
@@ -179,22 +249,11 @@ calculate_level :: proc(xp: int) -> int {
 }
 
 // =======================
-// Leaderboard Functions
+// Leaderboard
 // =======================
-sort_leaderboard :: proc() {
-    n := len(leaderboard_cache)
-    for i in 0..<n-1 {
-        for j in 0..<n-i-1 {
-            if leaderboard_cache[j].xp < leaderboard_cache[j+1].xp {
-                leaderboard_cache[j], leaderboard_cache[j+1] = leaderboard_cache[j+1], leaderboard_cache[j]
-            }
-        }
-    }
-    
-    for &entry, i in leaderboard_cache { 
-        entry.rank = i + 1 
-    }
-}
+// Leaderboard functions are defined above
+
+// sort_leaderboard function is defined only once
 
 find_rank :: proc(user_id: string) -> int {
     for entry, i in leaderboard_cache {
@@ -203,50 +262,6 @@ find_rank :: proc(user_id: string) -> int {
         }
     }
     return 0
-}
-
-update_leaderboard :: proc(state: ^UserGamificationState) {
-    found := false
-    for &entry, i in leaderboard_cache {
-        if entry.user_id == state.user_id {
-            old_rank := entry.rank
-            entry.xp = state.xp
-            entry.level = state.level
-            entry.sales = state.statistics.total_sales
-            entry.revenue = state.statistics.total_revenue
-            
-            sort_leaderboard()
-            entry.change = old_rank - find_rank(state.user_id)
-            found = true
-            break
-        }
-    }
-    
-    if !found {
-        new_entry := LeaderboardEntry{
-            user_id = state.user_id,
-            name = get_user_name(state.user_id),
-            xp = state.xp,
-            level = state.level,
-            sales = state.statistics.total_sales,
-            revenue = state.statistics.total_revenue,
-            rank = 0,
-            change = 0,
-        }
-        append(&leaderboard_cache, new_entry)
-        sort_leaderboard()
-    }
-}
-
-// =======================
-// Database Functions
-// =======================
-save_to_database :: proc(state: UserGamificationState) { 
-    fmt.println("💾 Saving state:", state.user_id, "XP:", state.xp) 
-}
-
-send_realtime_update :: proc(user_id: string, message: string) { 
-    fmt.println("🔔 Update for user", user_id, ":", message) 
 }
 
 // =======================

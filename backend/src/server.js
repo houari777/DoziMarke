@@ -24,12 +24,14 @@ app.use('/api/', limiter);
 
 // Connect to MongoDB
 mongoose.connect(
-  process.env.MONGODB_URI || 'mongodb://localhost:27017/dozi-market',
+  process.env.MONGODB_URI ||
+    'mongodb+srv://odin_user:MyStrongPass123@cluster0.cytwbpp.mongodb.net/odin_db?retryWrites=true&w=majority',
   {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
+    // Removed deprecated options
+    // useNewUrlParser: true,
+    // useUnifiedTopology: true,
+    // useCreateIndex: true,
+    // useFindAndModify: false,
   },
 );
 
@@ -43,6 +45,7 @@ db.once('open', () => {
 const businessRoutes = require('./routes/business');
 const gamificationRoutes = require('./routes/gamification');
 const negotiationRoutes = require('./routes/negotiation');
+const auth = require('./middleware/auth');
 
 // Use routes
 app.use('/api/business', businessRoutes);
@@ -121,7 +124,9 @@ function broadcastXpUpdate(userId, xpEarned) {
     }
   });
 }
+// ⚙️ backend/src/middleware/auth.js
 
+module.exports = auth;
 // Start server
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);

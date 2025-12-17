@@ -122,9 +122,6 @@ class GamificationController {
         case 'revenue':
           sortCriteria['statistics.totalRevenue'] = -1;
           break;
-        case 'rating':
-          sortCriteria['statistics.averageRating'] = -1;
-          break;
         default:
           sortCriteria['xp.total'] = -1;
       }
@@ -268,6 +265,66 @@ class GamificationController {
         data: {
           challenge,
           completed: challenge.completed,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+
+  // Get achievements
+  async getAchievements(req, res) {
+    try {
+      const { userId } = req.params;
+      const gamificationData = await Gamification.findOne({ userId });
+
+      if (!gamificationData) {
+        return res.status(404).json({
+          success: false,
+          error: 'Gamification data not found',
+        });
+      }
+
+      res.json({
+        success: true,
+        data: gamificationData.achievements,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+
+  // Claim reward
+  async claimReward(req, res) {
+    try {
+      const { userId } = req.params;
+      const { rewardId } = req.body;
+
+      const gamificationData = await Gamification.findOne({ userId });
+
+      if (!gamificationData) {
+        return res.status(404).json({
+          success: false,
+          error: 'Gamification data not found',
+        });
+      }
+
+      // Placeholder for reward claiming logic
+      // In a real app, you'd verify the reward, ensure it's claimable, etc.
+      gamificationData.currency.coins += 100; // Example reward
+      await gamificationData.save();
+
+      res.json({
+        success: true,
+        message: `Reward ${rewardId} claimed successfully!`,
+        data: {
+          newCoins: gamificationData.currency.coins,
         },
       });
     } catch (error) {
